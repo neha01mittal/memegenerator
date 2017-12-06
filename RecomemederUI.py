@@ -2,7 +2,21 @@ from pptx import Presentation
 from tkinter import *
 from PIL import Image, ImageTk
 import urllib.request
-prs = Presentation('test.pptx')
+
+# text_runs will be populated with a list of strings,
+# one for each text run in presentation
+def get_ppt_text(filename):
+    prs = Presentation(filename)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            for paragraph in shape.text_frame.paragraphs:
+                for run in paragraph.runs:
+                    text_runs.append(run.text)
+    print(text_runs)
+    return test_runs
 
 class InputPage(Frame):
     def __init__(self, parent, controller,*args, **kwargs):
@@ -12,8 +26,10 @@ class InputPage(Frame):
 
         #create upload presentation frame
         presentationFrame = Frame(self)
-        presentationLabel = Label(presentationFrame, text="Upload your presentation:",font="Arial 14 bold")
+        presentationLabel = Label(presentationFrame, text="Enter your presentation filename:",font="Arial 14 bold")
         presentationLabel.pack()
+        self.presentationEntry = Entry(presentationFrame, width = 20)
+        self.presentationEntry.pack()
         presentationFrame.pack(pady=10)
 
         #create sentiment frame
@@ -73,6 +89,9 @@ class InputPage(Frame):
         selectedSentiments = []
         selectedAudience = []
 
+        presentationFilename = self.presentationEntry.get() + '.pptx'
+        print("presentation filename: ", presentationFilename)
+
         for item in self.sentiments:
             value = self.sentiments[item].var.get()
             if value != 0:
@@ -85,9 +104,19 @@ class InputPage(Frame):
                 selectedAudience.append(item)
         print("selected audience: ", selectedAudience)
 
-        self.app.show_frame(OutputPage)
+        #create the output page TODO: call this function somewhere with inputs on the recommended memes to create the output
+        self.createOutputPage()
 
-        return selectedSentiments, selectedAudience
+        return presentationFilename, selectedSentiments, selectedAudience
+
+    # TODO: add parameter for recommended memes information
+    def createOutputPage(self):
+        outputFrame = OutputPage(self.app.container, self)
+        outputFrame.pack()
+        outputFrame.tkraise()
+
+        #destroy the input frame
+        self.destroy()
 
 class OutputPage(Frame):
     def __init__(self, parent, controller,*args, **kwargs):
@@ -124,7 +153,6 @@ class OutputPage(Frame):
             memeLabel = Label(memeFrame, text="Meme" + "ID/category") #TODO: replace with meme's metadata
             memeLabel.pack(fill=X)
 
-
 class RecomemederUI(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
@@ -135,23 +163,12 @@ class RecomemederUI(Tk):
         self.configure(background='#E1ECF4')
 
         #create the main container to that other frames will be raised into
-        self.container = Frame(self, background='#444444')
+        self.container = Frame(self, background='white')
         self.container.pack(side='top', fill='both', expand=True)
-        #create the dictionary of frames
-        self.frames = {}
 
-        #create the static pages
-        for F in (InputPage, OutputPage):
-            #create the frame and add it to the application's frames dictionary
-            frame = F(self.container, self, width=1000, height=1000, bg='white')
-            self.frames[F] = frame
-            frame.grid(row=0, column=0)
-        self.show_frame(InputPage)
-
-    def show_frame(self, cont):
-        '''Function to display a certain frame. Takes in the name of the frame.'''
-        frame = self.frames[cont]
-        frame.tkraise()
+        #create the input page
+        inputFrame = InputPage(self.container, self)
+        inputFrame.pack()
 
 if __name__ == '__main__':
     app = RecomemederUI()
