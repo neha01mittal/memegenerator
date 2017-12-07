@@ -2,10 +2,7 @@ import pandas as pd
 import nltk
 from nltk.tokenize import word_tokenize
 
-foutsentiment = "/Users/alyssali/Documents/Berkeley/Classes/202/Final Project/sentiment.txt"
-foutaudience = "/Users/alyssali/Documents/Berkeley/Classes/202/Final Project/audience.txt"
-
-memeData = pd.read_csv("/Users/alyssali/Documents/Berkeley/Classes/202/Final Project/202 Dataset.csv")
+memeData = pd.read_csv("dataset.csv")
 
 
 def get_inverted_index(input_list):
@@ -25,8 +22,10 @@ def persist_to_file(text, filename ):
 	fa.close()
 
 
-#tokenizing sentiment and audience 
-sentiment = (memeData['Sentiment'].str.lower()).apply(nltk.word_tokenize)
+#tokenizing sentiment and audience
+input = memeData['Sentiment'].str.lower()
+print(input)
+sentiment = (str(input)).apply(nltk.word_tokenize)
 audience = (memeData['Type of presentation'].str.lower()).apply(word_tokenize)
 sentiment_reverse = get_inverted_index(sentiment)
 audience_reverse = get_inverted_index(audience)
