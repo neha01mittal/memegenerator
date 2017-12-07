@@ -15,8 +15,7 @@ def get_ppt_text(filename):
             for paragraph in shape.text_frame.paragraphs:
                 for run in paragraph.runs:
                     text_runs.append(run.text)
-    print(text_runs)
-    return test_runs
+    return text_runs
 
 class InputPage(Frame):
     def __init__(self, parent, controller,*args, **kwargs):
@@ -91,6 +90,8 @@ class InputPage(Frame):
 
         presentationFilename = self.presentationEntry.get() + '.pptx'
         print("presentation filename: ", presentationFilename)
+        presentationText = get_ppt_text(presentationFilename)
+        print("presentation text: ", presentationText)
 
         for item in self.sentiments:
             value = self.sentiments[item].var.get()
@@ -111,7 +112,7 @@ class InputPage(Frame):
 
     # TODO: add parameter for recommended memes information
     def createOutputPage(self):
-        outputFrame = OutputPage(self.app.container, self)
+        outputFrame = OutputPage(self.app.container, self.app)
         outputFrame.pack()
         outputFrame.tkraise()
 
@@ -121,6 +122,9 @@ class InputPage(Frame):
 class OutputPage(Frame):
     def __init__(self, parent, controller,*args, **kwargs):
         Frame.__init__(self,parent,*args,**kwargs)
+
+        #set frame's app
+        self.app = controller
 
         #create recommendations frame
         recommendationsFrame = Frame(self)
@@ -152,6 +156,18 @@ class OutputPage(Frame):
 
             memeLabel = Label(memeFrame, text="Meme" + "ID/category") #TODO: replace with meme's metadata
             memeLabel.pack(fill=X)
+
+        #new recommendation button
+        newButton = Button(self, text="Reco-meme Again!", command=lambda : self.createInputPage())
+        newButton.pack()
+
+    def createInputPage(self):
+        inputFrame = InputPage(self.app.container, self.app)
+        inputFrame.pack()
+        inputFrame.tkraise()
+
+        #destroy the output frame
+        self.destroy()
 
 class RecomemederUI(Tk):
     def __init__(self, *args, **kwargs):
